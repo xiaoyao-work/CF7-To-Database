@@ -30,10 +30,23 @@ add_action( 'activate_' . WP_DEEP_CF7_PLUGIN_BASENAME, 'wpdeep_cf7_install' );
 function wpdeep_cf7_install() {
   if ( $opt = get_option( 'wpdeep_cf7' ) )
     return;
+  require_once ABSPATH . 'wp-content/plugins/contact-form-7/includes/classes.php';  
   wpdeep_cf7_register_post_types();
+  init_data();
   $opt['version'] = "1.0";
   update_option( 'wpcf7', $opt );
 }
+
+function init_data() {
+  $forms = WPCF7_ContactForm::find();
+  foreach ( $forms as $post ) {
+    $form = new WPCF7_ContactForm( $post->id );
+    wpdeep_cf7_after_save($form);
+  }
+}
+
+// register_deactivation_hook( __FILE__, 'myplugin_deactivate' );
+
 
 // add_action('init', 'wpdeep_cf7_register_post_types');
 add_action( 'plugins_loaded', 'wpdeep_cf7' );
@@ -107,7 +120,7 @@ function wpdeep_cf7_admin_entry_management_page() {
       <?php screen_icon(); ?>
       <h2><?php
       echo esc_html( __( 'Contact Entry Show', 'wpdeep_cf7' ) );
-      echo ' <a href="' . esc_url( add_query_arg( array( 'form_id' => $form_id ) , menu_page_url( 'wpdeep_cf7', false ) ) ) . '" class="add-new-h2">' . esc_html( __( 'Contact Entries', 'wpdeep_cf7' ) ) . '</a>';
+      // echo ' <a href="' . esc_url( add_query_arg( array( 'form_id' => $form_id ) , menu_page_url( 'wpdeep_cf7', false ) ) ) . '" class="add-new-h2">' . esc_html( __( 'Contact Entries', 'wpdeep_cf7' ) ) . '</a>';
       ?></h2>
       <table>
         <?php foreach ($fields as $key => $field) { ?>
@@ -128,7 +141,7 @@ function wpdeep_cf7_admin_entry_management_page() {
         <h2><?php
         echo esc_html( __( 'Contact Entries', 'wpdeep_cf7' ) );
 
-        echo ' <a href="' . esc_url( menu_page_url( 'wpcf7-new', false ) ) . '" class="add-new-h2">' . esc_html( __( 'Add New Form', 'wpdeep_cf7' ) ) . '</a>';
+        // echo ' <a href="' . esc_url( menu_page_url( 'wpcf7-new', false ) ) . '" class="add-new-h2">' . esc_html( __( 'Add New Form', 'wpdeep_cf7' ) ) . '</a>';
 
         if ( ! empty( $_REQUEST['s'] ) ) {
           echo sprintf( '<span class="subtitle">'
