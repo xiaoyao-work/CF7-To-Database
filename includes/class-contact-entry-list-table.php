@@ -17,21 +17,6 @@ class WPCF7_Contact_Entry_List_Table extends WP_List_Table {
       $form = current($forms);
       $form_id = $form->ID;
     }
-    /*$entries = $q->query(
-      array( 
-        'post_type' => 'deep_cf7entry', 
-        'meta_key' => 'cf7_form_id',
-        'meta_value' => $form_id
-        )
-      );
-    if (!empty($entries)) {
-      $curr_entry = current($entries);
-      $fields = get_post_meta($curr_entry->ID, "wp_deep_cf7_fields", true);
-      $fields = string2array($fields);
-    } else {
-      $fields = array();
-    }
-    */
 
     $fields = get_post_meta($form_id, "wp_deep_cf7_fields", true);
     if ($fields) {
@@ -39,19 +24,19 @@ class WPCF7_Contact_Entry_List_Table extends WP_List_Table {
     } else {
       $fields = array();
     }
-
-    $columns = array( 'cb' => '<input type="checkbox" />', 'id' => __("ID", 'wpdeep_cf7') );
+    
     $custom_columns =  array();
     if (!empty($fields)) {
       foreach ($fields as $key => $field) {
-        if ($key > 3) {
+        /*if ($key > 3) {
           break;
-        }
-        echo $key;
-        $custom_columns["col".$key] = __( $field, 'wpdeep_cf7' );
-        // $custom_columns[$field] = __( $field, 'wpdeep_cf7' );
+        }*/
+        // $custom_columns["col".$key] = __( $field, 'wpdeep_cf7' );
+        $custom_columns[$field] = __( $field, 'wpdeep_cf7' );
       }
     }
+
+    $columns = array( 'cb' => '<input type="checkbox" />', 'id' => __("ID", 'wpdeep_cf7') );
     $columns = array_merge($columns, $custom_columns, array('date' => __( 'Date', 'contact-form-7' ) ) );
     return $columns;
   }
@@ -145,24 +130,60 @@ class WPCF7_Contact_Entry_List_Table extends WP_List_Table {
 
   function get_sortable_columns() {
     $columns = array(
-      'title' => array( 'title', true ),
-      'author' => array( 'author', false ),
       'date' => array( 'date', false ) );
-
     return $columns;
+  }
+
+
+  /**
+   * Generates the columns for a single row of the table
+   *
+   * @since 3.1.0
+   * @access protected
+   *
+   * @param object $item The current item
+   */
+  function single_row_columns( $item ) {
+    list( $columns, $hidden ) = $this->get_column_info();
+
+    foreach ( $columns as $column_name => $column_display_name ) {
+      $class = "class='$column_name column-$column_name'";
+
+      $style = '';
+      if ( in_array( $column_name, $hidden ) )
+        $style = ' style="display:none;"';
+
+      $attributes = "$class$style";
+
+      if ( 'cb' == $column_name ) {
+        echo '<th scope="row" class="check-column">';
+        echo $this->column_cb( $item );
+        echo '</th>';
+      }
+      elseif ( method_exists( $this, 'column_' . $column_name ) ) {
+        echo "<td $attributes>";
+        echo call_user_func( array( $this, 'column_' . $column_name ), $item );
+        echo "</td>";
+      }
+      else {
+        echo "<td $attributes>";
+        echo $this->column_default( $item, $column_name );
+        echo "</td>";
+      }
+    }
+  }
+
+  function column_default( $item, $column_name ) {
+    $value = get_post_meta($item->id, "cf7_form_".$column_name, true);
+    return $value;
   }
 
   function get_bulk_actions() {
     $actions = array(
       'delete' => __( 'Delete', 'wpdeep_cf7' ) );
-
     return $actions;
   }
-
-  function column_default( $item, $column_name ) {
-    return '';
-  }
-
+  
   function column_cb( $item ) {
     return sprintf(
       '<input type="checkbox" name="%1$s[]" value="%2$s" />',
@@ -171,7 +192,6 @@ class WPCF7_Contact_Entry_List_Table extends WP_List_Table {
   }
 
   function column_id( $item ) {
-
     $url = admin_url( 'admin.php?page=wpdeep_cf7&form_id='.absint( $this->form_id ).'&entry_id=' . absint( $item->id ) );
     $show_link = add_query_arg( array( 'action' => 'show' ), $url );
     $a = sprintf( '<a class="row-title" href="%1$s" title="%2$s">%3$s</a>',
@@ -181,7 +201,7 @@ class WPCF7_Contact_Entry_List_Table extends WP_List_Table {
     return '<strong>' . $a . '</strong>';
   }
 
-  function column_col0( $item ) {
+  /*function column_col0( $item ) {
     $value = get_post_meta($item->id, "cf7_form_".$this->fields[0], true);
     return $value;
   }
@@ -199,7 +219,7 @@ class WPCF7_Contact_Entry_List_Table extends WP_List_Table {
   function column_col3( $item ) {
     $value = get_post_meta($item->id, "cf7_form_".$this->fields[3], true);
     return $value;
-  }
+  }*/
 
   function column_date( $item ) {
     $post = get_post( $item->id );

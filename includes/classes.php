@@ -30,8 +30,8 @@ class WP_Deep_CF7_Entry {
   public static function register_post_type() {
     register_post_type( self::post_type, array(
       'labels' => array(
-        'name' => __( 'Contact Forms', 'contact-form-7' ),
-        'singular_name' => __( 'Contact Form', 'contact-form-7' ) ),
+        'name' => __( 'Contact Form Entries', 'wpdeep_cf7' ),
+        'singular_name' => __( 'Contact Form Entry', 'wpdeep_cf7' ) ),
       'rewrite' => false,
       'query_var' => false ) );
   }
