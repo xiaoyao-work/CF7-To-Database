@@ -9,6 +9,8 @@ class WPCF7_Contact_Entry_List_Table extends WP_List_Table {
   public $forms;
 
   public static function define_columns() {
+
+    array('From', 'Phone', 'Product Type', 'Administrator', 'Recipients', 'Message', 'Result', 'Available', 'Date');
     $q = new WP_Query();
     $forms = $q->query( "post_type=wpcf7_contact_form" );
     if ( isset($_GET['form_id']) && !empty($_GET['form_id']) ) {
@@ -179,8 +181,12 @@ class WPCF7_Contact_Entry_List_Table extends WP_List_Table {
   }
 
   function get_bulk_actions() {
-    $actions = array(
-      'delete' => __( 'Delete', 'wpdeep_cf7' ) );
+    $actions = array();
+    if ( current_user_can('wpcf7_delete_contact_entry') ) {
+      $actions = array(
+        'delete' => __( 'Delete', 'wpdeep_cf7' )
+        );
+    }
     return $actions;
   }
   
@@ -201,7 +207,7 @@ class WPCF7_Contact_Entry_List_Table extends WP_List_Table {
     return '<strong>' . $a . '</strong>';
   }
 
-  /*function column_col0( $item ) {
+  function column_from( $item ) {
     $value = get_post_meta($item->id, "cf7_form_".$this->fields[0], true);
     return $value;
   }
@@ -219,7 +225,7 @@ class WPCF7_Contact_Entry_List_Table extends WP_List_Table {
   function column_col3( $item ) {
     $value = get_post_meta($item->id, "cf7_form_".$this->fields[3], true);
     return $value;
-  }*/
+  }
 
   function column_date( $item ) {
     $post = get_post( $item->id );
